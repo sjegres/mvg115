@@ -465,52 +465,43 @@
     }
 
     function draw() {
-      if (isRunning) return;
-      isRunning = true;
-      drawBtn.disabled = true;
-      drawBtn.style.opacity = '0.7';
-      drawBtn.style.cursor = 'not-allowed';
+  if (isRunning) return;
+  isRunning = true;
 
-      clearInterval(spinInterval);
-      clearInterval(countdownInterval);
-      clearTimeout(finishTimeout);
+  // 👉 poga pazūd
+  drawBtn.classList.add('hide');
 
-      result.classList.remove('finish');
-      void result.offsetWidth;
-      result.classList.add('spinning');
+  clearInterval(spinInterval);
+  clearInterval(countdownInterval);
+  clearTimeout(finishTimeout);
 
-      let remaining = 5;
-      counter.textContent = ``;
-      result.textContent = pickRandomName();
+  result.classList.remove('finish', 'fade-in');
+  void result.offsetWidth;
+  result.classList.add('spinning');
 
-      spinInterval = setInterval(() => {
-        result.textContent = pickRandomName();
-      }, 70);
+  result.textContent = pickRandomName();
 
-      countdownInterval = setInterval(() => {
-        remaining -= 1;
-        if (remaining > 0) {
-          counter.textContent = ``;
-        }
-      }, 1000);
+  spinInterval = setInterval(() => {
+    result.textContent = pickRandomName();
+  }, 70);
 
-      finishTimeout = setTimeout(() => {
-        clearInterval(spinInterval);
-        clearInterval(countdownInterval);
+  finishTimeout = setTimeout(() => {
+    clearInterval(spinInterval);
 
-        result.textContent = pickRandomName();
-        result.classList.remove('spinning');
-        result.classList.add('finish');
-        counter.textContent = '';
-        launchConfetti();
+    result.textContent = pickRandomName();
+    result.classList.remove('spinning');
+    result.classList.add('finish', 'fade-in');
 
-        isRunning = false;
-        drawBtn.disabled = false;
-        drawBtn.style.opacity = '1';
-        drawBtn.style.cursor = 'pointer';
-      }, 5000);
-    }
+    launchConfetti();
 
+    // 👉 poga atgriežas ar fade
+    setTimeout(() => {
+      drawBtn.classList.remove('hide');
+      isRunning = false;
+    }, 800);
+
+  }, 5000);
+}
     drawBtn.addEventListener('click', draw);
   </script>
 </body>
