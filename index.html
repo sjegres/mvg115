@@ -30,6 +30,16 @@
       z-index: 0;
     }
 
+    /* konfeti canvas pilnā ekrānā */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+      pointer-events: none;
+      z-index: 100;
+    }
+
     .wrap {
       text-align: center;
       padding: 40px 28px;
@@ -40,6 +50,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
 
     .salidojums {
@@ -48,6 +60,38 @@
       color: #1a3a6b;
       letter-spacing: 0.04em;
       margin-bottom: 40px;
+    }
+
+    .stage {
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 36px;
+    }
+
+    .result {
+      font-size: clamp(62px, 7vw, 120px);
+      font-weight: 900;
+      color: #1a3a6b;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .result.placeholder {
+      color: rgba(26,58,107,0.25);
+      font-size: clamp(100px, 12vw, 180px);
+    }
+
+    .spinning {
+      animation: wobble 0.28s ease-in-out infinite, flicker 0.38s linear infinite;
+    }
+
+    .finish {
+      animation: winnerPop 0.9s cubic-bezier(.2,.8,.2,1) forwards, pulse 1.8s ease-in-out 0.9s infinite;
     }
 
     .btn {
@@ -60,7 +104,6 @@
       background: #1a3a6b;
       color: white;
       font-weight: 900;
-      margin-bottom: 36px;
       opacity: 1;
       transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.6s ease;
       box-shadow: 0 10px 30px rgba(26,58,107,0.3);
@@ -79,37 +122,6 @@
       pointer-events: none;
     }
 
-    .stage {
-      min-height: 180px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-    }
-
-    .result {
-      font-size: clamp(42px, 6vw, 100px);
-      font-weight: 900;
-      color: #1a3a6b;
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-      text-align: center;
-      padding: 0 20px;
-    }
-
-    .result.placeholder {
-      color: rgba(26,58,107,0.25);
-      font-size: clamp(80px, 10vw, 160px);
-    }
-
-    .spinning {
-      animation: wobble 0.28s ease-in-out infinite, flicker 0.38s linear infinite;
-    }
-
-    .finish {
-      animation: winnerPop 0.9s cubic-bezier(.2,.8,.2,1);
-    }
-
     @keyframes wobble {
       0%   { transform: rotate(-5deg) translateX(-10px) scale(0.97); }
       25%  { transform: rotate(4deg) translateX(8px) scale(1.02); }
@@ -124,9 +136,14 @@
     }
 
     @keyframes winnerPop {
-      0% { transform: scale(0.6) rotate(-6deg); opacity: 0; }
-      60% { transform: scale(1.1) rotate(3deg); opacity: 1; }
+      0%   { transform: scale(0.6) rotate(-6deg); opacity: 0; }
+      60%  { transform: scale(1.1) rotate(3deg); opacity: 1; }
       100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); text-shadow: 0 0 0px rgba(26,58,107,0); }
+      50%       { transform: scale(1.04); text-shadow: 0 0 30px rgba(26,58,107,0.35); }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -134,14 +151,16 @@
 <body>
 
   <img class="lines-img" src="lines.png" alt="" />
+  <canvas id="confetti-canvas"></canvas>
 
   <div class="wrap">
-
-    <button id="drawBtn" class="btn">SĀKT IZLOZI</button>
+    <div class="salidojums">SALIDOJUMS</div>
 
     <div class="stage">
       <div id="result" class="result placeholder">?</div>
     </div>
+
+    <button id="drawBtn" class="btn">SĀKT IZLOZI</button>
   </div>
 
   <script>
@@ -185,15 +204,28 @@
 
     const result = document.getElementById('result');
     const drawBtn = document.getElementById('drawBtn');
+    const myCanvas = document.getElementById('confetti-canvas');
+
+    // konfeti ar savu canvas pilnā ekrānā
+    const myConfetti = confetti.create(myCanvas, { resize: true, useWorker: true });
+
     let spinInterval = null;
     let isRunning = false;
 
     function launchConfetti() {
-      const end = Date.now() + 4000;
+      const end = Date.now() + 4500;
       const colors = ['#1a3a6b', '#f5a623', '#ffffff', '#f8c471'];
       (function frame() {
-        confetti({ particleCount: 15, angle: 60, spread: 120, startVelocity: 55, gravity: 0.95, colors, origin: { x: 0, y: Math.random() * 0.7 } });
-        confetti({ particleCount: 15, angle: 120, spread: 120, startVelocity: 55, gravity: 0.95, colors, origin: { x: 1, y: Math.random() * 0.7 } });
+        // kreisais mala
+        myConfetti({ particleCount: 12, angle: 60, spread: 80, startVelocity: 60, gravity: 0.8, colors, origin: { x: 0, y: 0.5 } });
+        // labais mala
+        myConfetti({ particleCount: 12, angle: 120, spread: 80, startVelocity: 60, gravity: 0.8, colors, origin: { x: 1, y: 0.5 } });
+        // centrs augšā
+        myConfetti({ particleCount: 8, angle: 90, spread: 120, startVelocity: 50, gravity: 0.85, colors, origin: { x: 0.5, y: 0 } });
+        // kreisais augšā
+        myConfetti({ particleCount: 6, angle: 75, spread: 90, startVelocity: 55, gravity: 0.8, colors, origin: { x: 0.25, y: 0 } });
+        // labais augšā
+        myConfetti({ particleCount: 6, angle: 105, spread: 90, startVelocity: 55, gravity: 0.8, colors, origin: { x: 0.75, y: 0 } });
         if (Date.now() < end) requestAnimationFrame(frame);
       })();
     }
