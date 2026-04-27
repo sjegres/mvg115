@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<title>In Memoriam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 2048px;
+    height: 1080px;
+    overflow: hidden;
+    background: #0a0a0c;
+    font-family: 'Cormorant Garamond', serif;
+    color: #f3ece0;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(255, 240, 210, 0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 20% 80%, rgba(180, 160, 120, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(200, 180, 140, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  body::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 400px 80px rgba(0, 0, 0, 0.85);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* Fona slānis */
+  .background-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .bg-name {
+    position: absolute;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    color: #d4c8b0;
+    white-space: nowrap;
+    opacity: 0;
+    text-shadow: 0 0 18px rgba(255, 240, 210, 0.2);
+    letter-spacing: 0.05em;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Centrālā zona */
+  .stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+  }
+
+  .name-wrapper {
+    position: relative;
+    width: 1600px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 2000px;
+  }
+
+  .name {
+    position: absolute;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 96px;
+    letter-spacing: 0.08em;
+    color: #f3ece0;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    text-shadow:
+      0 0 30px rgba(255, 240, 210, 0.15),
+      0 0 60px rgba(255, 220, 170, 0.08);
+    transform-style: preserve-3d;
+  }
+
+  .name .first {
+    font-style: italic;
+    font-weight: 300;
+    color: #d4c8b0;
+  }
+
+  .name .last {
+    font-weight: 400;
+    margin-left: 0.3em;
+  }
+
+  .dust-field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    overflow: hidden;
+  }
+
+  .dust {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: radial-gradient(circle, rgba(255, 245, 220, 0.95) 0%, rgba(255, 240, 200, 0.4) 40%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Virsraksts augšā */
+  .header {
+    position: absolute;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .header .ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    margin-bottom: 28px;
+    opacity: 0.7;
+  }
+
+  .header .ornament .line {
+    width: 80px;
+    height: 1px;
+    background: #8a7a5a;
+  }
+
+  .header .ornament .star {
+    font-family: 'EB Garamond', serif;
+    font-size: 18px;
+    color: #8a7a5a;
+  }
+
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 56px;
+    letter-spacing: 0.25em;
+    color: #d4c8b0;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(255, 240, 210, 0.12);
+  }
+
+  .header.visible {
+    animation: headerFade 5s ease-out forwards;
+  }
+
+  @keyframes headerFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+  <div class="vignette"></div>
+  <div class="background-layer" id="bgLayer"></div>
+
+  <div class="header" id="header">
+    <div class="ornament">
+      <div class="line"></div>
+      <div class="star">✦</div>
+      <div class="line"></div>
+    </div>
+    <h1>Mūžam mūsu atmiņās</h1>
+  </div>
+
+  <div class="stage">
+    <div class="name-wrapper" id="wrapper"></div>
+  </div>
+
+  <div class="dust-field" id="dustField"></div>
+
+<script>
+const names = [
+  "Viktorija Tabūne",
+  "Māris Taimiņš",
+  "Anzelms Buls",
+  "Eduards Teivāns",
+  "Alma Liepa",
+  "Valija Kopmane",
+  "Egons Viša",
+  "Andris Fjodorovs",
+  "Uldis Karss",
+  "Ņina Svjastina",
+  "Ērika Paegle",
+  "Marta Līcīte",
+  "Vilnis Radziņš",
+  "Anita Apine",
+  "Inese Ļaksa",
+  "Veronika Grāvere",
+  "Sarmīte Šulce",
+  "Ilze Veide",
+  "Rita Švamberga",
+  "Anna Bērze",
+  "Ausma Uļjanska",
+  "Alberts Ancītis",
+  "Viktors Mihejevs",
+  "Uldis Bergmanis",
+  "Dzidra Kāle",
+  "Nora Kalve",
+  "Biruta Lauzēja"
+];
+
+const TOTAL_DURATION_MS = 120000;
+const START_DELAY_MS = 2000;
+const PER_NAME_MS = (TOTAL_DURATION_MS - START_DELAY_MS) / names.length;
+
+const ZOOM_MS = 1800;   // iezoomošana no tāluma
+const HOLD_MS = 1200;   // stāv centrā
+const DUST_MS = 2400;   // izšķīst putekļos
+
+const SCREEN_W = 2048;
+const SCREEN_H = 1080;
+const EDGE_PADDING = 60;
+
+const wrapper = document.getElementById('wrapper');
+const bgLayer = document.getElementById('bgLayer');
+const dustField = document.getElementById('dustField');
+
+// Aktīvo fona vārdu saraksts priekš pārklāšanās pārbaudes
+const activeBgRects = [];
+
+// Centra izslēgtā zona (galvenais vārds)
+const CENTER_ZONE = { x: 1024, y: 540, w: 1400, h: 260 };
+
+// Augšējā izslēgtā zona (virsraksts)
+const TOP_ZONE_Y = 240; // fona vārdi neiet augstāk par šo y koordinātu (kā jebkura punkta y)
+
+function splitName(fullName) {
+  const parts = fullName.trim().split(' ');
+  const first = parts.slice(0, -1).join(' ');
+  const last = parts[parts.length - 1];
+  return { first, last };
+}
+
+function measureText(text, fontSize, italic = false) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const style = italic ? 'italic 300' : '400';
+  ctx.font = `${style} ${fontSize}px "Cormorant Garamond", serif`;
+  return ctx.measureText(text).width;
+}
+
+// ============ FONA VĀRDI ============
+function overlapsCenterZone(x, y, w, h) {
+  const pad = 20;
+  return (
+    x - w/2 < CENTER_ZONE.x + CENTER_ZONE.w/2 + pad &&
+    x + w/2 > CENTER_ZONE.x - CENTER_ZONE.w/2 - pad &&
+    y - h/2 < CENTER_ZONE.y + CENTER_ZONE.h/2 + pad &&
+    y + h/2 > CENTER_ZONE.y - CENTER_ZONE.h/2 - pad
+  );
+}
+
+function overlapsActiveBg(x, y, w, h) {
+  const pad = 25;
+  for (const r of activeBgRects) {
+    if (
+      x - w/2 < r.x + r.w/2 + pad &&
+      x + w/2 > r.x - r.w/2 - pad &&
+      y - h/2 < r.y + r.h/2 + pad &&
+      y + h/2 > r.y - r.h/2 - pad
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function findBgPosition(textWidth, textHeight) {
+  const halfW = textWidth / 2;
+  const halfH = textHeight / 2;
+
+  const minX = EDGE_PADDING + halfW;
+  const maxX = SCREEN_W - EDGE_PADDING - halfW;
+  const minY = TOP_ZONE_Y + halfH; // neiet virs virsraksta zonas
+  const maxY = SCREEN_H - EDGE_PADDING - halfH;
+
+  if (minX >= maxX || minY >= maxY) return null;
+
+  for (let tries = 0; tries < 60; tries++) {
+    const x = minX + Math.random() * (maxX - minX);
+    const y = minY + Math.random() * (maxY - minY);
+    if (!overlapsCenterZone(x, y, textWidth, textHeight) &&
+        !overlapsActiveBg(x, y, textWidth, textHeight)) {
+      return { x, y };
+    }
+  }
+  return null; // neatrada vietas — izlaiž šo vārdu
+}
+
+function spawnBgName() {
+  const name = names[Math.floor(Math.random() * names.length)];
+  const fontSize = 32; // vienāds izmērs visiem
+
+  const { first, last } = splitName(name);
+  const firstW = measureText(first + ' ', fontSize, true);
+  const lastW = measureText(last, fontSize, false);
+  const textWidth = (firstW + lastW) * 1.08;
+  const textHeight = fontSize * 1.3;
+
+  const pos = findBgPosition(textWidth, textHeight);
+  if (!pos) return; // nav vietas — izlaiž
+
+  const rect = { x: pos.x, y: pos.y, w: textWidth, h: textHeight };
+  activeBgRects.push(rect);
+
+  const el = document.createElement('div');
+  el.className = 'bg-name';
+  el.innerHTML = `<span style="font-style:italic">${first}</span> <span style="font-weight:400">${last}</span>`;
+  el.style.left = pos.x + 'px';
+  el.style.top = pos.y + 'px';
+  el.style.fontSize = fontSize + 'px';
+  bgLayer.appendChild(el);
+
+  const peakOpacity = 0.5; // 50% redzami
+  const duration = 5500 + Math.random() * 4500;
+
+  el.animate([
+    { opacity: 0, filter: 'blur(8px)', transform: `translate(-50%, -50%) scale(0.96)` },
+    { opacity: peakOpacity, filter: 'blur(0.3px)', transform: `translate(-50%, -50%) scale(1)`, offset: 0.4 },
+    { opacity: peakOpacity, filter: 'blur(0.3px)', transform: `translate(-50%, -50%) scale(1)`, offset: 0.6 },
+    { opacity: 0, filter: 'blur(8px)', transform: `translate(-50%, -50%) scale(1.04)` }
+  ], {
+    duration: duration,
+    easing: 'ease-in-out',
+    fill: 'forwards'
+  });
+
+  // Atbrīvo vietu, tiklīdz fade-out ir sācies (75% no dzīves)
+  setTimeout(() => {
+    const idx = activeBgRects.indexOf(rect);
+    if (idx !== -1) activeBgRects.splice(idx, 1);
+  }, duration * 0.75);
+
+  setTimeout(() => el.remove(), duration + 100);
+}
+
+let bgInterval;
+function startBgNames() {
+  for (let i = 0; i < 4; i++) {
+    setTimeout(spawnBgName, i * 600);
+  }
+  bgInterval = setInterval(() => {
+    spawnBgName();
+    if (Math.random() < 0.4) setTimeout(spawnBgName, 400 + Math.random() * 500);
+  }, 1000);
+}
+
+// ============ GALVENIE VĀRDI ============
+function showName(fullName) {
+  const { first, last } = splitName(fullName);
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'name';
+  nameEl.innerHTML = `<span class="first">${first}</span><span class="last">${last}</span>`;
+  wrapper.appendChild(nameEl);
+
+  // ZOOM IN no tāluma: sāk mazs un izplūdis (it kā attālumā)
+  // un tuvojas, kļūstot lielāks un skaidrāks
+  nameEl.animate([
+    {
+      opacity: 0,
+      transform: 'scale(0.08) translateZ(-1200px)',
+      filter: 'blur(30px)'
+    },
+    {
+      opacity: 0.3,
+      transform: 'scale(0.3) translateZ(-600px)',
+      filter: 'blur(18px)',
+      offset: 0.35
+    },
+    {
+      opacity: 0.75,
+      transform: 'scale(0.7) translateZ(-200px)',
+      filter: 'blur(6px)',
+      offset: 0.7
+    },
+    {
+      opacity: 1,
+      transform: 'scale(1) translateZ(0)',
+      filter: 'blur(0)'
+    }
+  ], {
+    duration: ZOOM_MS,
+    easing: 'cubic-bezier(0.16, 0.8, 0.3, 1)',
+    fill: 'forwards'
+  });
+
+  setTimeout(() => {
+    dissolveToDust(nameEl);
+  }, ZOOM_MS + HOLD_MS);
+}
+
+function dissolveToDust(nameEl) {
+  const rect = nameEl.getBoundingClientRect();
+
+  const originX = rect.left;
+  const originY = rect.top;
+  const width = rect.width;
+  const height = rect.height;
+
+  const particleCount = 500;
+  const particles = [];
+
+  for (let i = 0; i < particleCount; i++) {
+    const p = document.createElement('div');
+    p.className = 'dust';
+
+    const px = originX + Math.random() * width;
+    const py = originY + Math.random() * height;
+    p.style.left = px + 'px';
+    p.style.top = py + 'px';
+
+    const size = 1 + Math.random() * 4;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+
+    dustField.appendChild(p);
+    particles.push(p);
+  }
+
+  nameEl.animate([
+    { opacity: 1, filter: 'blur(0)', transform: 'translateY(0) scale(1)' },
+    { opacity: 0.5, filter: 'blur(8px)', transform: 'translateY(-4px) scale(1.02)', offset: 0.3 },
+    { opacity: 0, filter: 'blur(18px)', transform: 'translateY(-12px) scale(1.05)' }
+  ], {
+    duration: DUST_MS * 0.55,
+    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    fill: 'forwards'
+  });
+
+  particles.forEach((p) => {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 250 + Math.random() * 750;
+
+    let driftX = Math.cos(angle) * distance;
+    let driftY = Math.sin(angle) * distance;
+    driftY -= 80 + Math.random() * 180;
+
+    const midX = driftX * 0.45 + (Math.random() - 0.5) * 120;
+    const midY = driftY * 0.35 - Math.random() * 100;
+
+    const delay = Math.random() * 600;
+    const duration = DUST_MS + Math.random() * 1000;
+
+    p.animate([
+      { opacity: 0, transform: 'translate(0, 0) scale(0.4)' },
+      { opacity: 0.95, transform: `translate(${midX * 0.4}px, ${midY * 0.4}px) scale(1.2)`, offset: 0.12 },
+      { opacity: 0.75, transform: `translate(${midX}px, ${midY}px) scale(0.9)`, offset: 0.45 },
+      { opacity: 0.35, transform: `translate(${driftX * 0.85}px, ${driftY * 0.85}px) scale(0.5)`, offset: 0.78 },
+      { opacity: 0, transform: `translate(${driftX}px, ${driftY}px) scale(0.1)` }
+    ], {
+      duration: duration,
+      delay: delay,
+      easing: 'cubic-bezier(0.25, 0.1, 0.4, 1)',
+      fill: 'forwards'
+    });
+  });
+
+  setTimeout(() => nameEl.remove(), DUST_MS * 0.55 + 100);
+  setTimeout(() => particles.forEach(p => p.remove()), DUST_MS + 1800);
+}
+
+// Palaišana tikai pēc klikšķa
+let hasStarted = false;
+function startMemorial() {
+  if (hasStarted) return;
+  hasStarted = true;
+
+  // Parādīt virsrakstu
+  const header = document.getElementById('header');
+  header.classList.add('visible');
+
+  setTimeout(() => {
+    startBgNames();
+    names.forEach((name, i) => {
+      setTimeout(() => showName(name), i * PER_NAME_MS);
+    });
+
+    // Aptur jaunu fona vārdu radīšanu pietiekami agri,
+    // lai visi esošie fona vārdi paspētu izgaist PIRMS pēdējā galvenā vārda beigām.
+    const lastNameEndMs = (names.length - 1) * PER_NAME_MS + ZOOM_MS + HOLD_MS + DUST_MS;
+    const BG_MAX_LIFE = 10000;
+    const stopBgAt = lastNameEndMs - BG_MAX_LIFE - 500;
+
+    setTimeout(() => {
+      if (bgInterval) clearInterval(bgInterval);
+    }, Math.max(0, stopBgAt));
+
+    // Virsraksts izgaist kopā ar pēdējo vārdu
+    // Sākam fade-out tieši pirms pēdējā vārda sāk izšķīst putekļos
+    const lastNameDustStart = (names.length - 1) * PER_NAME_MS + ZOOM_MS + HOLD_MS;
+    setTimeout(() => {
+      header.style.transition = 'opacity 3s ease-out';
+      header.style.opacity = '0';
+    }, lastNameDustStart);
+  }, START_DELAY_MS);
+}
+
+document.addEventListener('click', startMemorial);
+</script>
+</body>
+</html>

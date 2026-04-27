@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<title>Skaitīšana līdz 115</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 2048px;
+    height: 1080px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5a623 0%, #f8c471 50%, #f5a623 100%);
+    font-family: 'Playfair Display', serif;
+    color: #1a3a6b;
+    position: relative;
+  }
+
+  /* Līnijas fonā */
+  .lines-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Konfeti canvas */
+  #confetti-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Smalks gaismas overlay */
+  .light-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(255, 250, 230, 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 30% 30%, rgba(255, 240, 200, 0.18) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* Galvenais saturs */
+  .slide-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    text-align: center;
+    padding: 0 120px;
+    transform: translateY(-100px);
+  }
+
+  /* Augšējais dekoratīvs elements */
+  .top-decoration {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 60px;
+    opacity: 0.85;
+  }
+
+  .deco-line {
+    width: 140px;
+    height: 2px;
+    background: #1a3a6b;
+  }
+
+  .deco-diamond {
+    width: 14px;
+    height: 14px;
+    background: #1a3a6b;
+    transform: rotate(45deg);
+  }
+
+  /* Mazais virsuzraksts */
+  .kicker {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 52px;
+    color: #1a3a6b;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    opacity: 0.75;
+    padding-left: 0.45em;
+  }
+
+  /* Skaitļa konteineris */
+  .number-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 900px;
+    min-height: 500px;
+  }
+
+  /* Galvenais skaitlis */
+  .number {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 500px;
+    color: #1a3a6b;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    text-shadow:
+      0 8px 40px rgba(26, 58, 107, 0.2),
+      0 4px 0 rgba(255, 255, 255, 0.2);
+    display: inline-block;
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
+  /* Pulsācijas animācija kad sasniedz 115 */
+  .number.celebrate {
+    animation: celebrate 1.2s ease-out forwards, glow 2s ease-in-out 1.2s infinite;
+  }
+
+  @keyframes celebrate {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    70%  { transform: scale(0.95); }
+    100% { transform: scale(1.1); }
+  }
+
+  @keyframes glow {
+    0%, 100% { text-shadow: 0 8px 40px rgba(26, 58, 107, 0.2), 0 4px 0 rgba(255, 255, 255, 0.2); }
+    50%      { text-shadow: 0 8px 60px rgba(26, 58, 107, 0.4), 0 0 80px rgba(255, 240, 200, 0.7), 0 4px 0 rgba(255, 255, 255, 0.2); }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <img class="lines-img" src="lines.png" alt="" />
+  <canvas id="confetti-canvas"></canvas>
+  <div class="light-overlay"></div>
+
+  <div class="slide-content">
+
+    <div class="number-wrap">
+      <div class="number" id="number"></div>
+    </div>
+
+  </div>
+
+<script>
+  // ===== KONFETI =====
+  const myCanvas = document.getElementById('confetti-canvas');
+  let myConfetti = () => {};
+  if (typeof confetti !== 'undefined') {
+    myConfetti = confetti.create(myCanvas, { resize: true, useWorker: true });
+  }
+  const colors = ['#1a3a6b', '#f5a623', '#ffffff', '#f8c471', '#c77d1a'];
+
+  function celebrationConfetti() {
+    // Lielas dāvanas no abām malām
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        myConfetti({
+          particleCount: 60,
+          angle: 60,
+          spread: 90,
+          startVelocity: 65,
+          gravity: 0.85,
+          ticks: 280,
+          colors: colors,
+          origin: { x: 0, y: 0.5 }
+        });
+        myConfetti({
+          particleCount: 60,
+          angle: 120,
+          spread: 90,
+          startVelocity: 65,
+          gravity: 0.85,
+          ticks: 280,
+          colors: colors,
+          origin: { x: 1, y: 0.5 }
+        });
+        // No augšas arī
+        myConfetti({
+          particleCount: 40,
+          angle: 270,
+          spread: 180,
+          startVelocity: 40,
+          gravity: 0.9,
+          ticks: 280,
+          colors: colors,
+          origin: { x: 0.5, y: 0 }
+        });
+      }, i * 400);
+    }
+  }
+
+  // Mazs konfeti uzliesmojums katram skaitlim auto-animācijas fāzē
+  function sparkConfetti() {
+    myConfetti({
+      particleCount: 8,
+      angle: 90,
+      spread: 60,
+      startVelocity: 25,
+      gravity: 0.8,
+      ticks: 120,
+      colors: colors,
+      origin: { x: 0.5, y: 0.5 },
+      scalar: 0.7
+    });
+  }
+
+  // ===== SKAITĻA LOĢIKA =====
+  const numberEl = document.getElementById('number');
+
+  let current = 0;
+  let phase = 'manual1';  // 'manual1' (0-10), 'auto' (10-100), 'manual2' (100-115), 'done'
+  let autoRunning = false;
+
+  function setNumber(n, withAnimation = true) {
+    current = n;
+    if (!withAnimation) {
+      numberEl.textContent = n;
+      return;
+    }
+
+    // Smuka pārslēgšana — scale pop + blur
+    numberEl.animate([
+      { transform: 'scale(1)', opacity: 1, filter: 'blur(0)' },
+      { transform: 'scale(0.7)', opacity: 0, filter: 'blur(12px)', offset: 0.45 },
+      { transform: 'scale(1.2)', opacity: 1, filter: 'blur(0)', offset: 0.7 },
+      { transform: 'scale(1)', opacity: 1, filter: 'blur(0)' }
+    ], {
+      duration: 450,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      fill: 'forwards'
+    });
+
+    setTimeout(() => {
+      numberEl.textContent = n;
+    }, 200); // vidū, kad teksts ir neredzams
+  }
+
+  function advance() {
+    if (phase === 'done' || autoRunning) return;
+
+    if (phase === 'manual1') {
+      if (current < 10) {
+        setNumber(current + 1);
+        // Kad sasniedz 10 — pāriet uz auto fāzi
+        if (current >= 10) {
+          setTimeout(startAutoPhase, 900);
+        }
+      }
+    } else if (phase === 'manual2') {
+      if (current < 115) {
+        const next = current + 1;
+        setNumber(next);
+        // Ja sasniedza 115 — svētki!
+        if (next >= 115) {
+          phase = 'done';
+          setTimeout(() => {
+            numberEl.classList.add('celebrate');
+            celebrationConfetti();
+          }, 500);
+        }
+      }
+    }
+  }
+
+  function startAutoPhase() {
+    phase = 'auto';
+    autoRunning = true;
+
+    // Animēta skaitīšana no 10 līdz 100
+    // Sākumā ātri, vidū pagrieziens, beigās palēninās
+    const startValue = 10;
+    const endValue = 100;
+    const totalDuration = 7000; // 7 sekundes
+    const startTime = performance.now();
+
+    function animateCount(now) {
+      const elapsed = now - startTime;
+      let t = Math.min(elapsed / totalDuration, 1);
+
+      // Easing — ātri sākumā, palēninās beigās (ease-out-cubic)
+      const eased = 1 - Math.pow(1 - t, 3);
+      const value = Math.round(startValue + (endValue - startValue) * eased);
+
+      if (value !== current) {
+        current = value;
+        numberEl.textContent = value;
+        // Mazs bump efekts
+        numberEl.style.transform = `scale(${1 + (Math.random() * 0.08 - 0.04)})`;
+        setTimeout(() => {
+          numberEl.style.transform = 'scale(1)';
+        }, 60);
+        // Ik pa reizei maziņš konfeti
+        if (value % 10 === 0) {
+          sparkConfetti();
+        }
+      }
+
+      if (t < 1) {
+        requestAnimationFrame(animateCount);
+      } else {
+        // Sasniedza 100 — pāriet uz manual2 fāzi
+        current = 100;
+        numberEl.textContent = 100;
+        autoRunning = false;
+        phase = 'manual2';
+        // Mazs svētku konfeti par 100
+        myConfetti({
+          particleCount: 50,
+          angle: 270,
+          spread: 120,
+          startVelocity: 45,
+          gravity: 0.9,
+          ticks: 220,
+          colors: colors,
+          origin: { x: 0.5, y: 0.3 }
+        });
+      }
+    }
+
+    requestAnimationFrame(animateCount);
+  }
+
+  // Tastatūras kontrole — uz leju bultiņa
+  // Debounce — lai novērstu divkāršu izsaukumu
+  let lastKeyTime = 0;
+  function handleKey(e) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      e.stopPropagation();
+      const now = Date.now();
+      if (now - lastKeyTime < 100) return;
+      lastKeyTime = now;
+      advance();
+    }
+  }
+
+  // Klausās iframe dokumentu
+  document.addEventListener('keydown', handleKey, true);
+  window.addEventListener('keydown', handleKey, true);
+
+  // Ja esam iekšā iframe — pievienot klausītājus arī vecāka dokumentam,
+  // lai taustiņi strādā arī tad, ja fokuss nav iframe iekšā
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.document.addEventListener('keydown', handleKey, true);
+      window.parent.addEventListener('keydown', handleKey, true);
+    }
+  } catch (err) {
+    // Cross-origin — ignorējam
+  }
+
+  // Automātiski piešķir fokusu iframe slaidam, lai taustiņi uzreiz iet iekšā
+  window.focus();
+  document.body.setAttribute('tabindex', '0');
+  document.body.focus();
+</script>
+</script>
+</body>
+</html>

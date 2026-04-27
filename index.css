@@ -1,0 +1,55 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #fff;
+}
+
+/* Galvenais slaida konteineris — 2048x1080 ar scale uz ekrāna izmēru */
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.slide-frame-wrap {
+  width: 2048px;
+  height: 1080px;
+  transform-origin: center center;
+  position: relative;
+  background: #000;
+}
+
+/* Iframe pozicionēšana — abi pārklājas vienā vietā */
+.slide-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2048px;
+  height: 1080px;
+  border: 0;
+  display: block;
+  /* Sākotnēji neredzams */
+  opacity: 0;
+  /* Maigs crossfade — ease-in-out nodrošina, ka vidū nav nekādas "tukšas" zonas */
+  transition: opacity 0.65s ease-in-out;
+  /* Svarīgi: fons caurspīdīgs, lai pāreja izskatītos vienmērīga */
+  background: transparent;
+}
+
+/* Ielādēts un redzams */
+.slide-iframe.visible {
+  opacity: 1;
+}
+
+/* Veikalā pazūdošais iframe */
+.slide-iframe.fading-out {
+  opacity: 0;
+}

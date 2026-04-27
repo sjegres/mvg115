@@ -1,265 +1,195 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Izloze</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap');
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      font-family: 'Nunito', Arial, sans-serif;
-      background: linear-gradient(135deg, #f5a623 0%, #f8c471 50%, #f5a623 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .lines-img {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* konfeti canvas pilnā ekrānā */
-    #confetti-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100% !important;
-      height: 100% !important;
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    .wrap {
-      text-align: center;
-      padding: 40px 28px;
-      width: 100%;
-      max-width: 1400px;
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    .salidojums {
-      font-size: clamp(56px, 8vw, 120px);
-      font-weight: 900;
-      color: #1a3a6b;
-      letter-spacing: 0.04em;
-      margin-bottom: 40px;
-    }
-
-    .stage {
-      min-height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin-bottom: 36px;
-    }
-
-    .result {
-      font-size: clamp(62px, 7vw, 120px);
-      font-weight: 900;
-      color: #1a3a6b;
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-      text-align: center;
-      padding: 0 20px;
-    }
-
-    .result.placeholder {
-      color: rgba(26,58,107,0.25);
-      font-size: clamp(100px, 12vw, 180px);
-    }
-
-    .spinning {
-      animation: wobble 0.28s ease-in-out infinite, flicker 0.38s linear infinite;
-    }
-
-    .finish {
-      animation: winnerPop 0.9s cubic-bezier(.2,.8,.2,1) forwards, pulse 1.8s ease-in-out 0.9s infinite;
-    }
-
-    .btn {
-      padding: 18px 50px;
-      font-size: 24px;
-      font-family: 'Nunito', Arial, sans-serif;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      background: #1a3a6b;
-      color: white;
-      font-weight: 900;
-      opacity: 1;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.6s ease;
-      box-shadow: 0 10px 30px rgba(26,58,107,0.3);
-      letter-spacing: 0.05em;
-    }
-
-    .btn:hover {
-      transform: scale(1.06);
-      box-shadow: 0 16px 40px rgba(26,58,107,0.4);
-    }
-
-    .btn:active { transform: scale(1.02); }
-
-    .btn.hide {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    @keyframes wobble {
-      0%   { transform: rotate(-5deg) translateX(-10px) scale(0.97); }
-      25%  { transform: rotate(4deg) translateX(8px) scale(1.02); }
-      50%  { transform: rotate(-3deg) translateX(-8px) scale(0.98); }
-      75%  { transform: rotate(5deg) translateX(10px) scale(1.03); }
-      100% { transform: rotate(-5deg) translateX(-10px) scale(0.97); }
-    }
-
-    @keyframes flicker {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.75; }
-    }
-
-    @keyframes winnerPop {
-      0%   { transform: scale(0.6) rotate(-6deg); opacity: 0; }
-      60%  { transform: scale(1.1) rotate(3deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); text-shadow: 0 0 0px rgba(26,58,107,0); }
-      50%       { transform: scale(1.04); text-shadow: 0 0 30px rgba(26,58,107,0.35); }
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<meta charset="UTF-8">
+<title>Mārupes Valsts ģimnāzija 115 · Prezentācija</title>
+<link rel="stylesheet" href="index.css">
 </head>
 <body>
 
-  <img class="lines-img" src="lines.png" alt="" />
-  <canvas id="confetti-canvas"></canvas>
-
-  <div class="wrap">
-
-    <div class="stage">
-      <div id="result" class="result placeholder">?</div>
-    </div>
-
-    <button id="drawBtn" class="btn">SĀKT IZLOZI</button>
+  <div class="stage">
+    <div class="slide-frame-wrap" id="frameWrap"></div>
   </div>
 
-  <script>
-    const names = [
-"Adele Sakoviča","Agate Buravcova","Agnese Medne","AIJA GALNIECE","Aija Smilga",
-"Ainārs Zenka","Aiva Banga","Alens Pčelins","Alise Kuzņecova","Alise Lukina",
-"Andris Daubergs","Anete Strūberga","Anne Grēta Stalidzāne","Artūrs Smiltnieks",
-"Artūrs Šulbergs","Artūrs Veismanis","Astra Ondzule","Āboliņa Anda","Āris Patmalnieks",
-"Baiba Čerņevska","Daina Taupmane","Daniels Bambals","Dārta Albiņa-Alba","Dāvis Briedis",
-"Dzintra Adītāja","Edgars Bole","Edgars Dzirkalis","Edijs Bunduls","Edvards Sviķis",
-"Elita Voiciša","Elīna Logina","Emija Nikola Karele","Emīls Grietēns","Emīls Lejnieks",
-"Endijs Markuss Zorgevics","Ernests Roberts Vēriņš","Estere Papša","Evita Kraukle",
-"Guntis Ruskis","Gustavs Linde","Gustavs Namnieks","Ģirts Paupers","Helēna Vidžupe",
-"Ieva Stapāne","Inga Orlova","Ingus Urtāns","Inita Čapese","Jana Pietkeviča",
-"Jānis Daubergs","Jānis Saliņš","Jānis Tilibs","Jānis Vēriņš","Jolanta Armuševica",
-"Jurģis Namejs Zvejnieks","Karīna Krauze","Karlis Levensteins","Katrīna Baltaisbrence",
-"Kārlis Roberts Krūmiņš","Krista Dzebale","Krista Kirķe","Kristaps Kārlis Naglis",
-"Kristaps Zvejnieks","Kristers Jaunzems","Kristers Linde","Kristiāna Dauberga",
-"Kristiāna Veipa","Kristīne Homatova","Kristīne Krūmiņa","Lidere","Līva Leida Liberte",
-"Līva Lielkāja","Loreta Pavloviča","Lote Annija Ankalniņa","Marta Svētiņa",
-"Maruta Butāne","Maruta Līcīte","Matiss Siciliano","Māra Kājiņa","Miks Vēveris",
-"Miķelis Vilcēns","Mišela Dūka","Nauris Auzenbahs","Nikola Krista Ivanova",
-"Normunds Voicišs","Patrīcija Anna Krafte","Patrīcija Lidere","Paula Marija Romanovska",
-"Pēteris Kalniņš","Pēteris Tārs","Pēteris Tervits","RENĀTA ANŽA","Rets Rupmejs",
-"Rihards Bārda","Roberts Dūks","Roberts Knope","Sigita Svarca","Sintija Jurdža",
-"Sintija Pāruma","Tanita Rībena","Toms Baltiņš","Uldis Dirvēns","Valda Priede",
-"Voldemārs Grahoļskis","Iveta Račko","Alnars Pirvics","Ruta Gabranova","Romēna Šulca",
-"Rolands Lācis","Kristaps Magone","Toms Romanovskis","Luīze Lūcija Grava",
-"Rinalds Sedliņš","Roberts Kristofers Napituhins","Grēta Nora Kasparāne",
-"Māra Makstniece","Tīna Dansone","Laura Džigune","Līga Ulmane","Andriana Laura Vitte",
-"Katrīne Kazaka","Sandis Maskaļonoks","Eduards Krustiņš","Mārtiņš Toms Puķītis",
-"Evelīna Agnese Vietere","Keita Elizabete Pētersone","Rendijs Gulbis","Anete Apsīte",
-"Baiba Vertele","Sabīne Baltaisbrence","Laine Jansone","Ilona Buka",
-"Dāvis Raivo Zvejnieks","Rita Savicka","Dagnija Puniņa","Niks Mežiņš","Ilze Romane",
-"Edgars Krūmiņš","Austra Štrāla","Aelita Pāvule","Anna Apšiniece","Ingrīda Garbolinska",
-"Aiva Volfa","Agnese Žagata","Pēteris Zvaigzne","Dāvids Purmalis","Elīna Lerķe",
-"Andris Velme","Ilze Rudzīte","Nikola Aniņa","Laura Eimane","Rūta Dūduma",
-"Sarmite Valaine","Paula Niedinga","Kurts Gailis","Anna Raita","Kristens Zvirgzdiņš",
-"Marta Būmane"
-];
+<script>
+  // ========== SLAIDU SARAKSTS ==========
+  const slides = [
+    { file: 'pirmais.html' },
+    { file: 'memorial.html' },
+    { file: 'direktore.html' },
+    { file: 'pirmais.html' },
+    { file: 'pazisti.html' },
+    { file: 'lagzdkalns.html' },
+    { file: 'pirmais.html' },
+    { file: 'pazisti2.html' },
+    { file: 'vpadome.html' },
+    { file: 'pirmais.html' },
+    { file: 'hronologija.html' },
+    { file: 'hizloze.html' },
+    { file: 'hronologija_laiks.html' },
+    { file: '1.html' },
+    { file: '2.html' },
+    { file: '3.html' },
+    { file: '4.html' },
+    { file: '5.html' },
+    { file: '6.html' },
+    { file: '7.html' },
+    { file: '8.html' },
+    { file: 'pasvaldiba.html' },
+    { file: 'pirmais.html' },
+    { file: 'alias.html' },
+    { file: 'alias_izloze.html' },
+    { file: 'alias_laiks.html' },
+    { file: 'dobele.html' },
+    { file: 'pirmais.html' },
+    { file: 'uzzime.html' },
+    { file: 'uzzime_izloze.html' },
+    { file: 'uzzime_laiks.html' },
+    { file: 'akmens.html' },
+    { file: 'uzzime_laiks.html' },
+    { file: 'andzela.html' },
+    { file: 'uzzime_laiks.html' },
+    { file: 'trepes.html' },
+    { file: 'izm.html' },
+    { file: 'pirmais.html' },
+    { file: 'atnesa.html' },
+    { file: 'atnesa_izloze.html' },
+    { file: 'atnesa.html' },
+    { file: 'apdavinasana.html' },
+    { file: 'skaitisana.html' },
+    { file: 'koris.html' },
+    { file: 'paldies.html' }
+  ];
 
-    const result = document.getElementById('result');
-    const drawBtn = document.getElementById('drawBtn');
-    const myCanvas = document.getElementById('confetti-canvas');
+  // ========== STĀVOKLIS ==========
+  let currentIndex = -1;
+  let isTransitioning = false;
+  let currentFrame = null;
+  const frameWrap = document.getElementById('frameWrap');
 
-    // konfeti ar savu canvas pilnā ekrānā
-    const myConfetti = confetti.create(myCanvas, { resize: true, useWorker: true });
+  // ========== PALĪGFUNKCIJAS ==========
+  function createIframe(src) {
+    const f = document.createElement('iframe');
+    f.className = 'slide-iframe';
+    f.setAttribute('allow', 'autoplay');
+    f.src = src;
+    return f;
+  }
 
-    let spinInterval = null;
-    let isRunning = false;
+  function attachKeyForwarder(iframe) {
+    iframe.addEventListener('load', () => {
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+        doc.addEventListener('keydown', (e) => {
+          const clone = new KeyboardEvent('keydown', {
+            key: e.key,
+            code: e.code,
+            keyCode: e.keyCode,
+            which: e.which,
+            bubbles: true,
+            cancelable: true
+          });
+          document.dispatchEvent(clone);
+        });
+      } catch (err) {
+        console.warn('Could not attach iframe keydown forwarder:', err);
+      }
+    });
+  }
 
-    function launchConfetti() {
-      const end = Date.now() + 4500;
-      const colors = ['#1a3a6b', '#f5a623', '#ffffff', '#f8c471'];
-      (function frame() {
-        // kreisais mala
-        myConfetti({ particleCount: 12, angle: 60, spread: 80, startVelocity: 60, gravity: 0.8, colors, origin: { x: 0, y: 0.5 } });
-        // labais mala
-        myConfetti({ particleCount: 12, angle: 120, spread: 80, startVelocity: 60, gravity: 0.8, colors, origin: { x: 1, y: 0.5 } });
-        // centrs augšā
-        myConfetti({ particleCount: 8, angle: 90, spread: 120, startVelocity: 50, gravity: 0.85, colors, origin: { x: 0.5, y: 0 } });
-        // kreisais augšā
-        myConfetti({ particleCount: 6, angle: 75, spread: 90, startVelocity: 55, gravity: 0.8, colors, origin: { x: 0.25, y: 0 } });
-        // labais augšā
-        myConfetti({ particleCount: 6, angle: 105, spread: 90, startVelocity: 55, gravity: 0.8, colors, origin: { x: 0.75, y: 0 } });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
+  // ========== SLAIDA MAIŅA AR CROSSFADE ==========
+  // Abi iframes pārklājas vienā vietā. Jaunais ielādējas neredzams (opacity 0),
+  // tad paralēli vecais pazūd un jaunais parādās. Nav melnas pārejas —
+  // fons ir oranžs (tā pati kā slaidos).
+  function goTo(index) {
+    if (index < 0 || index >= slides.length) return;
+    if (index === currentIndex) return;
+    if (isTransitioning) return;
+
+    isTransitioning = true;
+    currentIndex = index;
+
+    const src = slides[index].file + '?v=' + Date.now();
+
+    // Pirmais ielādējums — bez crossfade
+    if (!currentFrame) {
+      const newFrame = createIframe(src);
+      newFrame.classList.add('visible');
+      attachKeyForwarder(newFrame);
+      frameWrap.appendChild(newFrame);
+      currentFrame = newFrame;
+      newFrame.addEventListener('load', () => {
+        isTransitioning = false;
+      }, { once: true });
+      return;
     }
 
-    function pickRandom() {
-      return names[Math.floor(Math.random() * names.length)];
-    }
+    // Jauns iframe tiek pievienots (opacity 0)
+    const oldFrame = currentFrame;
+    const newFrame = createIframe(src);
+    attachKeyForwarder(newFrame);
+    frameWrap.appendChild(newFrame);
 
-    function draw() {
-      if (isRunning) return;
-      isRunning = true;
-      drawBtn.classList.add('hide');
-      result.classList.remove('finish', 'spinning', 'placeholder');
-      void result.offsetWidth;
-      result.classList.add('spinning');
-      result.textContent = pickRandom();
-
-      spinInterval = setInterval(() => {
-        result.textContent = pickRandom();
-      }, 70);
-
+    // Gaida, kamēr jaunais ielādējas, tad crossfade
+    newFrame.addEventListener('load', () => {
+      // Mazs buferis, lai fonti / attēli paspētu uzzīmēties
       setTimeout(() => {
-        clearInterval(spinInterval);
-        result.textContent = pickRandom();
-        result.classList.remove('spinning');
-        result.classList.add('finish');
-        launchConfetti();
-        setTimeout(() => {
-          drawBtn.classList.remove('hide');
-          isRunning = false;
-        }, 800);
-      }, 5000);
-    }
+        newFrame.classList.add('visible');
+        oldFrame.classList.add('fading-out');
 
-    drawBtn.addEventListener('click', draw);
-  </script>
+        // Pēc pārejas — iznīcina veco iframe (aptur tā skriptus)
+        setTimeout(() => {
+          try { oldFrame.src = 'about:blank'; } catch(e) {}
+          oldFrame.remove();
+          currentFrame = newFrame;
+          isTransitioning = false;
+        }, 650);
+      }, 50);
+    }, { once: true });
+  }
+
+  function next() { goTo(Math.min(currentIndex + 1, slides.length - 1)); }
+  function prev() { goTo(Math.max(currentIndex - 1, 0)); }
+
+  // ========== TASTATŪRAS KONTROLES ==========
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      next();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prev();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      goTo(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      goTo(slides.length - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  });
+
+  // ========== AUTOMĀTISKA MĒROGOŠANA ==========
+  // Math.max — aizpilda visu ekrānu (ja ekrāna proporcijas atšķiras no 2048x1080,
+  // mazākā dimensijas puse tiks nedaudz apgriezta, bet nav melnu malu).
+  function fitStage() {
+    const scaleX = window.innerWidth / 2048;
+    const scaleY = window.innerHeight / 1080;
+    const scale = Math.max(scaleX, scaleY);
+    frameWrap.style.transform = `scale(${scale})`;
+  }
+
+  window.addEventListener('resize', fitStage);
+  fitStage();
+
+  // ========== SĀKUMA SLAIDS ==========
+  goTo(0);
+</script>
 </body>
 </html>

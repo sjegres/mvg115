@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<title>Apdāvināšana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 2048px;
+    height: 1080px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5a623 0%, #f8c471 50%, #f5a623 100%);
+    font-family: 'Playfair Display', serif;
+    color: #1a3a6b;
+    position: relative;
+  }
+
+  /* Līnijas fonā */
+  .lines-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Smalks gaismas overlay */
+  .light-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(255, 250, 230, 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse at 30% 30%, rgba(255, 240, 200, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Konfeti canvas */
+  #confetti-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* Dāvanu laukums */
+  #giftField {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    overflow: hidden;
+  }
+
+  .gift {
+    position: absolute;
+    top: -120px;
+    user-select: none;
+    will-change: transform;
+  }
+
+  /* Krītošā dāvana rotē un krīt */
+  @keyframes fall {
+    0%   { transform: translateY(0) rotate(var(--start-rot, 0deg)); }
+    100% { transform: translateY(var(--fall-distance, 1100px)) rotate(var(--end-rot, 720deg)); }
+  }
+
+  /* Galvenais saturs */
+  .slide-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    text-align: center;
+    padding: 0 120px;
+    pointer-events: none;
+  }
+
+  /* Augšējais dekoratīvs elements */
+  .top-decoration {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 80px;
+    opacity: 0.85;
+  }
+
+  .deco-line {
+    width: 120px;
+    height: 2px;
+    background: #1a3a6b;
+  }
+
+  .deco-diamond {
+    width: 12px;
+    height: 12px;
+    background: #1a3a6b;
+    transform: rotate(45deg);
+  }
+
+  /* Virsraksts */
+  .title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 180px;
+    color: #1a3a6b;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-shadow:
+      0 4px 20px rgba(26, 58, 107, 0.15),
+      0 2px 0 rgba(255, 255, 255, 0.18),
+      0 0 80px rgba(255, 240, 200, 0.4);
+    position: relative;
+    padding: 20px 60px;
+  }
+
+  /* Maigs apļveida fons aiz teksta, lai izceltos uz dāvanu fona */
+  .title::before {
+    content: '';
+    position: absolute;
+    inset: -20px -40px;
+    background: radial-gradient(ellipse at center,
+      rgba(248, 196, 113, 0.85) 0%,
+      rgba(248, 196, 113, 0.6) 50%,
+      transparent 80%);
+    z-index: -1;
+    border-radius: 50%;
+  }
+
+  /* Apakšējais dekoratīvs elements */
+  .bottom-decoration {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-top: 60px;
+    opacity: 0.85;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <img class="lines-img" src="lines.png" alt="" />
+  <div class="light-overlay"></div>
+  <canvas id="confetti-canvas"></canvas>
+  <div id="giftField"></div>
+
+  <div class="slide-content">
+    <div class="top-decoration">
+      <div class="deco-line"></div>
+      <div class="deco-diamond"></div>
+      <div class="deco-line"></div>
+    </div>
+
+    <h1 class="title">Dāvanu pasniegšana</h1>
+
+    <div class="bottom-decoration">
+      <div class="deco-line"></div>
+      <div class="deco-diamond"></div>
+      <div class="deco-line"></div>
+    </div>
+  </div>
+
+<script>
+  // Dažādi svētku simboli, kas krīt no augšas
+  const gifts = ['🎁', '🎀', '🎊', '🎉', '🌹', '💐', '🌷', '🌸', '✨', '⭐', '🏆', '💝', '🎈', '🍰', '🎂', '🥂', '🍾', '💌', '🎵'];
+
+  const field = document.getElementById('giftField');
+  const SCREEN_W = 2048;
+  const SCREEN_H = 1080;
+
+  // Mērķis — piepildīt VISU ekrānu ātrāk (~2 min)
+  const FILL_DURATION_MS = 120000; // 2 min
+  const TARGET_GIFTS = 400;
+  const SPAWN_INTERVAL = FILL_DURATION_MS / TARGET_GIFTS; // ~300ms
+
+  let stackedGifts = [];
+  const FLOOR_Y = SCREEN_H;
+
+  function randomBetween(a, b) {
+    return a + Math.random() * (b - a);
+  }
+
+  function findLandingY(x, width) {
+    let maxY = FLOOR_Y;
+    for (const g of stackedGifts) {
+      if (x + width / 2 > g.x - g.width / 2 && x - width / 2 < g.x + g.width / 2) {
+        if (g.topY < maxY) {
+          maxY = g.topY;
+        }
+      }
+    }
+    return maxY;
+  }
+
+  function spawnGift() {
+    const emoji = gifts[Math.floor(Math.random() * gifts.length)];
+    const size = randomBetween(70, 150);
+    // Ļauj dāvanām krist visā platumā — pat daļēji ārpus malām,
+    // lai aizpildītu stūrus pilnīgi
+    const x = randomBetween(size / 2 - 30, SCREEN_W - size / 2 + 30);
+
+    const landingY = findLandingY(x, size);
+    const topY = landingY - size * 0.9;
+    const fallDistance = topY + 120;
+
+    // Ja šajā kolonā vairs neietilpst, vienkārši nelaiž iekšā
+    // (bet neapstādina intervālu — varbūt citā kolonā vēl ir vieta)
+    if (topY < -50) return;
+
+    const el = document.createElement('div');
+    el.className = 'gift';
+    el.textContent = emoji;
+    el.style.left = x + 'px';
+    el.style.fontSize = size + 'px';
+    el.style.lineHeight = '1';
+
+    const startRot = randomBetween(-30, 30);
+    const endRot = startRot + randomBetween(180, 720) * (Math.random() < 0.5 ? 1 : -1);
+    const duration = randomBetween(2.2, 3.4);
+
+    el.style.setProperty('--start-rot', startRot + 'deg');
+    el.style.setProperty('--end-rot', endRot + 'deg');
+    el.style.setProperty('--fall-distance', fallDistance + 'px');
+    el.style.animation = `fall ${duration}s cubic-bezier(0.33, 0, 0.67, 1) forwards`;
+
+    el.addEventListener('animationend', () => {
+      el.style.animation = 'none';
+      el.style.transform = `translateY(${fallDistance}px) rotate(${endRot}deg)`;
+      el.animate([
+        { transform: `translateY(${fallDistance}px) rotate(${endRot}deg) scale(1)` },
+        { transform: `translateY(${fallDistance - 12}px) rotate(${endRot}deg) scale(1.05)` },
+        { transform: `translateY(${fallDistance}px) rotate(${endRot}deg) scale(1)` }
+      ], {
+        duration: 400,
+        easing: 'cubic-bezier(0.5, 0, 0.5, 1)'
+      });
+    });
+
+    field.appendChild(el);
+
+    stackedGifts.push({
+      x: x,
+      topY: topY + 120,
+      width: size,
+      el: el
+    });
+  }
+
+  function startRain() {
+    // Sākuma uzliesmojums
+    for (let i = 0; i < 3; i++) {
+      setTimeout(spawnGift, i * 200);
+    }
+    setInterval(spawnGift, SPAWN_INTERVAL);
+  }
+
+  // ===== KONFETI =====
+  const myCanvas = document.getElementById('confetti-canvas');
+  let myConfetti = () => {};
+  if (typeof confetti !== 'undefined') {
+    myConfetti = confetti.create(myCanvas, { resize: true, useWorker: true });
+  }
+  const colors = ['#1a3a6b', '#f5a623', '#ffffff', '#f8c471', '#c77d1a'];
+
+  function dropConfetti() {
+    myConfetti({
+      particleCount: 3,
+      angle: 270,
+      spread: 70,
+      startVelocity: 22,
+      gravity: 0.9,
+      ticks: 180,
+      colors: colors,
+      origin: { x: Math.random(), y: -0.05 },
+      scalar: 0.9 + Math.random() * 0.4
+    });
+  }
+  setInterval(dropConfetti, 200);
+
+  startRain();
+</script>
+</body>
+</html>

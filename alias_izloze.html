@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Izloze</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 2048px;
+      height: 1080px;
+      min-height: 1080px;
+      overflow: hidden;
+      font-family: 'Playfair Display', serif;
+      background: linear-gradient(135deg, #f5a623 0%, #f8c471 50%, #f5a623 100%);
+      color: #1a3a6b;
+      position: relative;
+    }
+
+    .lines-img {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Smalks gaismas overlay */
+    .light-overlay {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(255, 250, 230, 0.25) 0%, transparent 60%),
+        radial-gradient(ellipse at 30% 30%, rgba(255, 240, 200, 0.15) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Konfeti canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .wrap {
+      position: absolute;
+      inset: 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      padding: 0 120px;
+      transform: translateY(-40px);
+    }
+
+    /* Augšējais ornaments */
+    .top-decoration {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      margin-bottom: 50px;
+      opacity: 0.85;
+    }
+
+    .deco-line {
+      width: 120px;
+      height: 2px;
+      background: #1a3a6b;
+    }
+
+    .deco-diamond {
+      width: 12px;
+      height: 12px;
+      background: #1a3a6b;
+      transform: rotate(45deg);
+    }
+
+    /* Mazais virsraksts */
+    .kicker {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 52px;
+      color: #1a3a6b;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+      opacity: 0.72;
+      padding-left: 0.5em;
+    }
+
+    /* Mid ornament pirms rezultāta */
+    .mid-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 50px;
+    }
+
+    .mid-ornament .line {
+      width: 180px;
+      height: 1px;
+      background: #1a3a6b;
+      opacity: 0.5;
+    }
+
+    .mid-ornament .star {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      color: #1a3a6b;
+      opacity: 0.5;
+    }
+
+    /* Rezultāta zona */
+    .stage {
+      min-height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 70px;
+    }
+
+    .result {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 150px;
+      color: #1a3a6b;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      text-align: center;
+      padding: 0 40px;
+      text-shadow:
+        0 4px 20px rgba(26, 58, 107, 0.12),
+        0 2px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .result.placeholder {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: rgba(26, 58, 107, 0.25);
+      font-size: 260px;
+      text-shadow: none;
+    }
+
+    .spinning {
+      animation: wobble 0.28s ease-in-out infinite, flicker 0.38s linear infinite;
+    }
+
+    .finish {
+      animation: winnerPop 0.9s cubic-bezier(.2,.8,.2,1) forwards, pulse 1.8s ease-in-out 0.9s infinite;
+    }
+
+    /* Poga */
+    .btn {
+      padding: 28px 80px;
+      font-size: 40px;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 400;
+      border: 2px solid #1a3a6b;
+      border-radius: 60px;
+      cursor: pointer;
+      background: #1a3a6b;
+      color: #f8c471;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      opacity: 1;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.6s ease;
+      box-shadow: 0 10px 30px rgba(26, 58, 107, 0.3);
+      padding-left: calc(80px + 0.35em * 0.5);
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 16px 40px rgba(26, 58, 107, 0.4);
+    }
+
+    .btn:active { transform: scale(1.02); }
+
+    .btn.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes wobble {
+      0%   { transform: rotate(-4deg) translateX(-8px) scale(0.98); }
+      25%  { transform: rotate(3deg) translateX(6px) scale(1.01); }
+      50%  { transform: rotate(-2deg) translateX(-6px) scale(0.99); }
+      75%  { transform: rotate(4deg) translateX(8px) scale(1.02); }
+      100% { transform: rotate(-4deg) translateX(-8px) scale(0.98); }
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
+    }
+
+    @keyframes winnerPop {
+      0%   { transform: scale(0.6) rotate(-4deg); opacity: 0; }
+      60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); text-shadow: 0 4px 20px rgba(26, 58, 107, 0.12), 0 2px 0 rgba(255, 255, 255, 0.15); }
+      50%      { transform: scale(1.03); text-shadow: 0 0 40px rgba(26, 58, 107, 0.35), 0 4px 20px rgba(26, 58, 107, 0.2); }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+  <img class="lines-img" src="lines.png" alt="" />
+  <div class="light-overlay"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="wrap">
+
+    <div class="top-decoration">
+      <div class="deco-line"></div>
+      <div class="deco-diamond"></div>
+      <div class="deco-line"></div>
+    </div>
+
+    <div class="kicker">Īpašais viesis</div>
+
+    <div class="mid-ornament">
+      <div class="line"></div>
+      <div class="star">✦</div>
+      <div class="line"></div>
+    </div>
+
+    <div class="stage">
+      <div id="result" class="result placeholder">?</div>
+    </div>
+
+    <button id="drawBtn" class="btn">Sākt izlozi</button>
+  </div>
+
+  <script>
+    const names = [
+  'Sergejs', 'Jānis', 'Artūrs'
+];
+
+    const result = document.getElementById('result');
+    const drawBtn = document.getElementById('drawBtn');
+    const myCanvas = document.getElementById('confetti-canvas');
+
+    // Drošs konfeti inicialitājs — darbojas arī ja bibliotēka neielādējas
+    let myConfetti = () => {};
+    if (typeof confetti !== 'undefined') {
+      myConfetti = confetti.create(myCanvas, { resize: true, useWorker: true });
+    }
+
+    let spinInterval = null;
+    let isRunning = false;
+
+    function launchConfetti() {
+      const end = Date.now() + 4500;
+      const colors = ['#1a3a6b', '#f5a623', '#ffffff', '#f8c471'];
+      (function frame() {
+        myConfetti({ particleCount: 12, angle: 60, spread: 80, startVelocity: 60, gravity: 0.8, colors, origin: { x: 0, y: 0.5 } });
+        myConfetti({ particleCount: 12, angle: 120, spread: 80, startVelocity: 60, gravity: 0.8, colors, origin: { x: 1, y: 0.5 } });
+        myConfetti({ particleCount: 8, angle: 90, spread: 120, startVelocity: 50, gravity: 0.85, colors, origin: { x: 0.5, y: 0 } });
+        myConfetti({ particleCount: 6, angle: 75, spread: 90, startVelocity: 55, gravity: 0.8, colors, origin: { x: 0.25, y: 0 } });
+        myConfetti({ particleCount: 6, angle: 105, spread: 90, startVelocity: 55, gravity: 0.8, colors, origin: { x: 0.75, y: 0 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    function pickRandom() {
+      return names[Math.floor(Math.random() * names.length)];
+    }
+
+    function draw() {
+      if (isRunning) return;
+      isRunning = true;
+      drawBtn.classList.add('hide');
+      result.classList.remove('finish', 'spinning', 'placeholder');
+      void result.offsetWidth;
+      result.classList.add('spinning');
+      result.textContent = pickRandom();
+
+      spinInterval = setInterval(() => {
+        result.textContent = pickRandom();
+      }, 70);
+
+      setTimeout(() => {
+        clearInterval(spinInterval);
+        result.textContent = pickRandom();
+        result.classList.remove('spinning');
+        result.classList.add('finish');
+        launchConfetti();
+        setTimeout(() => {
+          drawBtn.textContent = 'Nākamais';
+          drawBtn.classList.remove('hide');
+          isRunning = false;
+        }, 800);
+      }, 5000);
+    }
+
+    drawBtn.addEventListener('click', draw);
+  </script>
+</body>
+</html>

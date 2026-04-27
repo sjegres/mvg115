@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<title>Spēle · Cik ilgi pazīsti jubilāru?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 2048px;
+    height: 1080px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5a623 0%, #f8c471 50%, #f5a623 100%);
+    font-family: 'Playfair Display', serif;
+    color: #1a3a6b;
+    position: relative;
+  }
+
+  /* Līnijas fonā */
+  .lines-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Konfeti canvas */
+  #confetti-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Smalks gaismas overlay */
+  .light-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(255, 250, 230, 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse at 30% 30%, rgba(255, 240, 200, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* Galvenais saturs */
+  .slide-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    text-align: center;
+    padding: 0 120px;
+    transform: translateY(-200px);
+  }
+
+  /* Augšējais dekoratīvs elements */
+  .top-decoration {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 50px;
+    opacity: 0.85;
+  }
+
+  .deco-line {
+    width: 120px;
+    height: 2px;
+    background: #1a3a6b;
+  }
+
+  .deco-diamond {
+    width: 12px;
+    height: 12px;
+    background: #1a3a6b;
+    transform: rotate(45deg);
+  }
+
+  /* Kicker "SPĒLE" */
+  .kicker {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 56px;
+    color: #1a3a6b;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    margin-bottom: 55px;
+    opacity: 0.75;
+    padding-left: 0.5em; /* kompensē pēdējā burta letter-spacing */
+  }
+
+  /* Vidus ornamenta līnija starp SPĒLE un jautājumu */
+  .mid-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 60px;
+  }
+
+  .mid-ornament .line {
+    width: 180px;
+    height: 1px;
+    background: #1a3a6b;
+    opacity: 0.5;
+  }
+
+  .mid-ornament .star {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    color: #1a3a6b;
+    opacity: 0.5;
+  }
+
+  /* Galvenais jautājums */
+  .question {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 150px;
+    color: #1a3a6b;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    max-width: 1700px;
+    text-shadow:
+      0 4px 20px rgba(26, 58, 107, 0.12),
+      0 2px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  /* ====== TAIMERIS LABAJĀ STŪRĪ ====== */
+  .timer-wrap {
+    position: absolute;
+    bottom: 100px;
+    right: 140px;
+    width: 340px;
+    height: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    z-index: 5;
+  }
+
+  .timer-wrap:hover {
+    transform: scale(1.03);
+  }
+
+  .timer-wrap:active {
+    transform: scale(0.99);
+  }
+
+  .timer-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .timer-ring circle {
+    fill: none;
+    stroke-width: 6;
+  }
+
+  .timer-ring .track {
+    stroke: rgba(26, 58, 107, 0.22);
+  }
+
+  .timer-ring .progress {
+    stroke: #1a3a6b;
+    stroke-linecap: round;
+    stroke-width: 8;
+    filter: drop-shadow(0 2px 8px rgba(26, 58, 107, 0.25));
+    transition: stroke-dashoffset 0.3s linear;
+  }
+
+  .timer-ring .tick {
+    stroke: #1a3a6b;
+    stroke-width: 2;
+    opacity: 0.5;
+  }
+
+  .timer-number {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 130px;
+    color: #1a3a6b;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-shadow:
+      0 4px 20px rgba(26, 58, 107, 0.15),
+      0 2px 0 rgba(255, 255, 255, 0.15);
+    position: relative;
+    z-index: 2;
+    transform: translateY(-20px);
+  }
+
+  .timer-number.urgent {
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .timer-number.finished {
+    color: #c77d1a;
+    font-size: 96px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: translateY(-20px) scale(1); }
+    50%      { transform: translateY(-20px) scale(1.06); }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <img class="lines-img" src="lines.png" alt="" />
+  <canvas id="confetti-canvas"></canvas>
+  <div class="light-overlay"></div>
+
+  <div class="slide-content">
+
+    <div class="top-decoration">
+      <div class="deco-line"></div>
+      <div class="deco-diamond"></div>
+      <div class="deco-line"></div>
+    </div>
+
+    <div class="kicker">Spēle</div>
+
+    <div class="mid-ornament">
+      <div class="line"></div>
+      <div class="star">✦</div>
+      <div class="line"></div>
+    </div>
+
+    <h1 class="question">Alias</h1>
+
+  </div>
+
+  <div class="timer-wrap" id="timerWrap">
+    <svg class="timer-ring" viewBox="0 0 340 340">
+      <circle class="track" cx="170" cy="170" r="155"></circle>
+      <circle class="progress" id="timerProgress" cx="170" cy="170" r="155"
+              stroke-dasharray="974" stroke-dashoffset="0"></circle>
+      <g id="tickMarks"></g>
+    </svg>
+    <div class="timer-number" id="timerNumber">1:00</div>
+  </div>
+
+<script>
+  // ===== KONFETI SETUP =====
+  const myCanvas = document.getElementById('confetti-canvas');
+  let myConfetti = () => {};
+  if (typeof confetti !== 'undefined') {
+    myConfetti = confetti.create(myCanvas, { resize: true, useWorker: true });
+  }
+  const colors = ['#1a3a6b', '#f5a623', '#ffffff', '#f8c471', '#c77d1a'];
+
+  // Optimizēts konfeti lietus
+  function dropConfetti() {
+    myConfetti({
+      particleCount: 3,
+      angle: 270,
+      spread: 70,
+      startVelocity: 22,
+      gravity: 0.9,
+      ticks: 180,
+      colors: colors,
+      origin: { x: Math.random(), y: -0.05 },
+      scalar: 0.9 + Math.random() * 0.4
+    });
+  }
+  setInterval(dropConfetti, 200);
+
+  // ===== TAIMERIS =====
+  const TOTAL_SECONDS = 60;
+  const CIRCUMFERENCE = 2 * Math.PI * 155;
+  const progressCircle = document.getElementById('timerProgress');
+  const timerNumber = document.getElementById('timerNumber');
+  const timerWrap = document.getElementById('timerWrap');
+  const tickMarksGroup = document.getElementById('tickMarks');
+
+  progressCircle.setAttribute('stroke-dasharray', CIRCUMFERENCE);
+  progressCircle.setAttribute('stroke-dashoffset', 0);
+
+  // Izveido 12 ticks ārpus apļa (katras 5 sekundes)
+  const svgNS = 'http://www.w3.org/2000/svg';
+  for (let i = 0; i < 12; i++) {
+    const angle = (i * 30 - 90) * Math.PI / 180;
+    const outerR = 172;
+    const innerR = 164;
+    const x1 = 170 + outerR * Math.cos(angle);
+    const y1 = 170 + outerR * Math.sin(angle);
+    const x2 = 170 + innerR * Math.cos(angle);
+    const y2 = 170 + innerR * Math.sin(angle);
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('class', 'tick');
+    tickMarksGroup.appendChild(line);
+  }
+
+  let remaining = TOTAL_SECONDS;
+  let intervalId = null;
+  let isRunning = false;
+  let startTime = 0;
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function updateDisplay(secLeft) {
+    timerNumber.textContent = formatTime(secLeft);
+    const progress = secLeft / TOTAL_SECONDS;
+    progressCircle.setAttribute('stroke-dashoffset', CIRCUMFERENCE * (1 - progress));
+
+    if (secLeft <= 10 && secLeft > 0) {
+      timerNumber.classList.add('urgent');
+    } else {
+      timerNumber.classList.remove('urgent');
+    }
+
+    if (secLeft <= 0) {
+      timerNumber.classList.add('finished');
+      timerNumber.classList.remove('urgent');
+      timerNumber.textContent = 'Laiks!';
+    } else {
+      timerNumber.classList.remove('finished');
+    }
+  }
+
+  function tick() {
+    const elapsed = (Date.now() - startTime) / 1000;
+    const secLeft = Math.max(0, TOTAL_SECONDS - elapsed);
+    updateDisplay(secLeft);
+    if (secLeft <= 0) {
+      clearInterval(intervalId);
+      intervalId = null;
+      isRunning = false;
+      // Svinīgs konfeti uzliesmojums, kad laiks beidzas
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          myConfetti({
+            particleCount: 40,
+            angle: 60,
+            spread: 80,
+            startVelocity: 55,
+            ticks: 220,
+            colors: colors,
+            origin: { x: 0, y: 0.5 }
+          });
+          myConfetti({
+            particleCount: 40,
+            angle: 120,
+            spread: 80,
+            startVelocity: 55,
+            ticks: 220,
+            colors: colors,
+            origin: { x: 1, y: 0.5 }
+          });
+        }, i * 300);
+      }
+    }
+  }
+
+  function startTimer() {
+    if (isRunning) return;
+    // Ja taimeris ir beidzies — pilnīgs reset
+    if (remaining <= 0 || timerNumber.classList.contains('finished')) {
+      remaining = TOTAL_SECONDS;
+      timerNumber.classList.remove('finished');
+      updateDisplay(TOTAL_SECONDS);
+    }
+    isRunning = true;
+    startTime = Date.now() - (TOTAL_SECONDS - remaining) * 1000;
+    intervalId = setInterval(tick, 100);
+  }
+
+  function pauseTimer() {
+    if (!isRunning) return;
+    const elapsed = (Date.now() - startTime) / 1000;
+    remaining = Math.max(0, TOTAL_SECONDS - elapsed);
+    clearInterval(intervalId);
+    intervalId = null;
+    isRunning = false;
+  }
+
+  function resetTimer() {
+    clearInterval(intervalId);
+    intervalId = null;
+    isRunning = false;
+    remaining = TOTAL_SECONDS;
+    updateDisplay(TOTAL_SECONDS);
+  }
+
+  timerWrap.addEventListener('click', () => {
+    if (isRunning) {
+      pauseTimer();
+    } else {
+      startTimer();
+    }
+  });
+
+  // R = reset
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'r' || e.key === 'R') {
+      e.preventDefault();
+      resetTimer();
+    }
+  });
+
+  // Sāk ar pilniem 60 sec displeju
+  updateDisplay(TOTAL_SECONDS);
+</script>
+</body>
+</html>

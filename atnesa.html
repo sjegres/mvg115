@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<title>Spēle · Cik ilgi pazīsti jubilāru?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 2048px;
+    height: 1080px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5a623 0%, #f8c471 50%, #f5a623 100%);
+    font-family: 'Playfair Display', serif;
+    color: #1a3a6b;
+    position: relative;
+  }
+
+  /* Līnijas fonā */
+  .lines-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Konfeti canvas */
+  #confetti-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Smalks gaismas overlay */
+  .light-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(255, 250, 230, 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse at 30% 30%, rgba(255, 240, 200, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* Galvenais saturs */
+  .slide-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    text-align: center;
+    padding: 0 120px;
+    transform: translateY(-200px);
+  }
+
+  /* Augšējais dekoratīvs elements */
+  .top-decoration {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 50px;
+    opacity: 0.85;
+  }
+
+  .deco-line {
+    width: 120px;
+    height: 2px;
+    background: #1a3a6b;
+  }
+
+  .deco-diamond {
+    width: 12px;
+    height: 12px;
+    background: #1a3a6b;
+    transform: rotate(45deg);
+  }
+
+  /* Kicker "SPĒLE" */
+  .kicker {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 56px;
+    color: #1a3a6b;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    margin-bottom: 55px;
+    opacity: 0.75;
+    padding-left: 0.5em; /* kompensē pēdējā burta letter-spacing */
+  }
+
+  /* Vidus ornamenta līnija starp SPĒLE un jautājumu */
+  .mid-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 60px;
+  }
+
+  .mid-ornament .line {
+    width: 180px;
+    height: 1px;
+    background: #1a3a6b;
+    opacity: 0.5;
+  }
+
+  .mid-ornament .star {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    color: #1a3a6b;
+    opacity: 0.5;
+  }
+
+  /* Galvenais jautājums */
+  .question {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 110px;
+    color: #1a3a6b;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    max-width: 1700px;
+    text-shadow:
+      0 4px 20px rgba(26, 58, 107, 0.12),
+      0 2px 0 rgba(255, 255, 255, 0.15);
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <img class="lines-img" src="lines.png" alt="" />
+  <canvas id="confetti-canvas"></canvas>
+  <div class="light-overlay"></div>
+
+  <div class="slide-content">
+
+    <div class="top-decoration">
+      <div class="deco-line"></div>
+      <div class="deco-diamond"></div>
+      <div class="deco-line"></div>
+    </div>
+
+    <div class="kicker">Spēle</div>
+
+    <div class="mid-ornament">
+      <div class="line"></div>
+      <div class="star">✦</div>
+      <div class="line"></div>
+    </div>
+
+    <h1 class="question">Kas atnesa labāko dāvanu?</h1>
+
+  </div>
+
+<script>
+  const myCanvas = document.getElementById('confetti-canvas');
+  const myConfetti = confetti.create(myCanvas, { resize: true, useWorker: true });
+
+  const colors = ['#1a3a6b', '#f5a623', '#ffffff', '#f8c471', '#c77d1a'];
+
+  // Nepārtraukts konfeti lietus — tāds pats kā direktores slaidā
+  function rainConfetti() {
+    myConfetti({
+      particleCount: 2,
+      angle: 270,
+      spread: 70,
+      startVelocity: 22,
+      gravity: 0.7,
+      ticks: 400,
+      colors: colors,
+      origin: { x: Math.random(), y: -0.05 },
+      scalar: 0.9 + Math.random() * 0.4
+    });
+
+    if (Math.random() < 0.12) {
+      myConfetti({
+        particleCount: 3,
+        angle: 270,
+        spread: 100,
+        startVelocity: 28,
+        gravity: 0.75,
+        ticks: 400,
+        colors: colors,
+        origin: { x: Math.random(), y: -0.05 },
+        scalar: 1.0
+      });
+    }
+
+    requestAnimationFrame(rainConfetti);
+  }
+
+  rainConfetti();
+</script>
+</body>
+</html>
